@@ -43,7 +43,7 @@ chrome.runtime.onMessageExternal.addListener(
             // Related ticket:
             // https://bugs.chromium.org/p/chromium/issues/detail?id=425344
             tab.url = sender.url;
-            
+
             // Gets chrome media stream token and returns it in the response.
             chrome.desktopCapture.chooseDesktopMedia(
                 sources, tab,
@@ -51,6 +51,8 @@ chrome.runtime.onMessageExternal.addListener(
                     sendResponse({ streamId: streamId });
                 });
             return true; // Preserve sendResponse for future use
+        } else if(request.recordTab) {
+            startRecordingTab();
         } else {
             console.error("Unknown request");
             sendResponse({ error : "Unknown request" });
@@ -58,3 +60,7 @@ chrome.runtime.onMessageExternal.addListener(
         }
     }
 );
+
+function recordTab() {
+    RecordTab.start();
+}

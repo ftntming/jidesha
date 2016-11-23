@@ -6,15 +6,19 @@
   "default_locale": "en",
 
   "short_name": "Ubity Meet",
-  "version": "0.1.10",
-  "minimum_chrome_version": "34",
+  "version": "0.2.9",
+  "minimum_chrome_version": "49",
   "icons": {
     "16": "ubity-logo-16x16.png",
     "48": "ubity-logo-48x48.png",
     "128": "ubity-logo-128x128.png"
   },
   "background": {
-        "scripts": [ "background.js" ],
+        "scripts": [
+            "background.js",
+            "recorder.js",
+            "RecordRTC.min.js",
+        ],
         "persistent": true
   },
   "permissions": [
