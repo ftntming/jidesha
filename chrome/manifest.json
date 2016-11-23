@@ -1,13 +1,17 @@
 {
   "manifest_version": 2,
-  "name": "Jitsi Desktop Streamer",
-  "description": "A simple extension that allows you to stream your desktop into meetings with Jitsi Meet and Jitsi Videobridge.",
-  "version": "0.1.6",
+
+  "name": "__MSG_appName__",
+  "description": "__MSG_appDesc__",
+  "default_locale": "en",
+
+  "short_name": "Ubity Meet",
+  "version": "0.1.10",
   "minimum_chrome_version": "34",
   "icons": {
-    "16": "jitsi-logo-16x16.png",
-    "48": "jitsi-logo-48x48.png",
-    "128": "jitsi-logo-128x128.png"
+    "16": "ubity-logo-16x16.png",
+    "48": "ubity-logo-48x48.png",
+    "128": "ubity-logo-128x128.png"
   },
   "background": {
         "scripts": [ "background.js" ],
@@ -18,7 +22,7 @@
   ],
   "externally_connectable": {
       "matches": [
-          "*://meet.jit.si/*"
+          "*://meet*.ubity.com/*"
       ]
   }
 }
