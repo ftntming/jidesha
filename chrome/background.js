@@ -52,7 +52,18 @@ chrome.runtime.onMessageExternal.addListener(
                 });
             return true; // Preserve sendResponse for future use
         } else if(request.recordTab) {
-            startRecordingTab();
+            if (request.startRecording) {
+                /*
+                var tab = sender.tab;
+                tab.url = sender.url;
+                console.log("recordTab", tab);
+                captureDesktop(tab); //BUG
+                */
+                getUserConfigs();
+            } else {
+                stopScreenRecording();
+            }
+            return true;
         } else {
             console.error("Unknown request");
             sendResponse({ error : "Unknown request" });
@@ -60,7 +71,3 @@ chrome.runtime.onMessageExternal.addListener(
         }
     }
 );
-
-function recordTab() {
-    RecordTab.start();
-}

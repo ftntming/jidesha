@@ -17,17 +17,24 @@
         "scripts": [
             "background.js",
             "recorder.js",
-            "RecordRTC.min.js"
+            "RecordRTC.js"
         ],
         "persistent": true
   },
   "permissions": [
-      "desktopCapture"
+      "tabs",
+      "storage",
+      "desktopCapture",
+      "declarativeContent"
   ],
   "externally_connectable": {
       "matches": [
           "*://meet.ubity.com/*",
           "*://meet.dev.ubity.com/*"
       ]
-  }
+  },
+  "page_action":{
+      "default_icon":"ubity-logo-16x16.png",
+      "default_title":"Ubity Meet"
+   }
 }
