@@ -2,23 +2,25 @@
 <html>
   <head>
     <script type="text/javascript" src="page_action.js"></script>
+    <script type="text/javascript" src="i18n.js"></script>
   </head>
-<body style="width: 200px;">
+  <body style="width: 200px;">
 
     <div id="start" style="display: none">
-        <div>Start recording this meeting? (beta)</div>
+        <div><span data-i18n="startRecordingQuestion">Start recording this meeting?</span> (beta)</div>
         <p style="text-align: right">
-            <button id="start-yes">Yes</button> <button id="cancel1">Cancel</button>
+            <button id="start-yes" data-i18n="Yes">Yes</button>
+            <button id="cancel1" data-i18n="Cancel">Cancel</button>
         </p>
     </div>
 
     <div id="stop" style="display: none">
-        <p>Recording... <span id="duration"></span></p>
-        <div>Stop recording?</div>
+        <p data-i18n="Recording___">Recording... <span id="duration"></span></p>
+        <div data-i18n="stopRecordingQuestion">Stop recording?</div>
         <p style="text-align: right">
-            <button id="stop-yes">Stop</button> <button id="cancel2">Continue</button>
+            <button id="stop-yes" data-i18n="Stop">Stop</button>
+            <button id="cancel2" data-i18n="Continue">Continue</button>
         </p>
     </div>
-
-</body>
+  </body>
 </html>

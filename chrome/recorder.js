@@ -54,7 +54,8 @@ chrome.runtime.onMessage.addListener(function (msg, sender, response) {
         } else if (msg.subject === 'stop-recording') {
             stopScreenRecording();
         } else if (msg.subject === 'is-recording') {
-            response({recording: isRecording, duration:convertTime(Date.now() - initialTime)});
+            response({recording: isRecording,
+                duration:convertTime(Date.now() - initialTime)});
         }
     }
 });
@@ -63,7 +64,8 @@ chrome.runtime.onMessage.addListener(function (msg, sender, response) {
 
 
 function notifyRecording(duration){
-    chrome.runtime.sendMessage({from: 'recorder', subject: 'recording', duration: duration});
+    chrome.runtime.sendMessage(
+        {from: 'recorder', subject: 'recording', duration: duration});
 }
 
 function notifyStopped(){
@@ -89,7 +91,8 @@ function captureDesktop(tab) {
     var screenSources = ['tab', 'audio'];
 
     try {
-        chrome.desktopCapture.chooseDesktopMedia(screenSources, /*tab,*/ onAccessApproved);
+        chrome.desktopCapture.chooseDesktopMedia(
+            screenSources, /*tab,*/ onAccessApproved);
     } catch (e) {
         getUserMediaError(e);
     }
@@ -132,9 +135,10 @@ function onAccessApproved(chromeMediaSourceId) {
 
     chrome.tabs.getSelected(function(_tab){
         if (_tab.url.match(/meet.*ubity\.com/)) {
-            navigator.webkitGetUserMedia(constraints, gotStream, getUserMediaError);
+            navigator.webkitGetUserMedia(
+                constraints, gotStream, getUserMediaError);
         } else {
-            alert("Please, select Ubity's Meet from the list.");
+            alert(chrome.i18n.getMessage("pleaseSelectUbityMeet"));
             getUserConfigs();
             return;
         }
@@ -204,7 +208,8 @@ function stopScreenRecording() {
 
     if (typeof recorder !== 'undefined' && recorder.stopRecording) {
         recorder.stopRecording(function() {
-            invokeSaveAsDialog(recorder.blob, 'RecordRTC-' + (new Date).toISOString().replace(/:|\./g, '-') + '.webm');
+            invokeSaveAsDialog(recorder.blob, 'RecordRTC-' +
+                (new Date).toISOString().replace(/:|\./g, '-') + '.webm');
 
             setTimeout(function() {
                 setDefaults();
@@ -222,7 +227,7 @@ function stopScreenRecording() {
     setBadgeText('');
 
     chrome.pageAction.setTitle({
-        title: 'Record Screen'
+        title: chrome.i18n.getMessage("appName")
     });
 }
 
@@ -245,7 +250,11 @@ function setDefaults() {
 }
 
 var isRecording = false;
-var images = ['recordRTC-progress-1.png', 'recordRTC-progress-2.png', 'recordRTC-progress-3.png', 'recordRTC-progress-4.png', 'recordRTC-progress-5.png'];
+var images = ['recordRTC-progress-1.png',
+    'recordRTC-progress-2.png',
+    'recordRTC-progress-3.png',
+    'recordRTC-progress-4.png',
+    'recordRTC-progress-5.png'];
 var imgIndex = 0;
 var reverse = false;
 
@@ -303,7 +312,7 @@ function checkTime() {
 
     chrome.pageAction.setTitle({
         tabId: currentTabId,
-        title: 'Recording duration: ' + formatted
+        title: chrome.i18n.getMessage("recordingDuration") + ': ' + formatted
     });
 
 }

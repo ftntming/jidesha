@@ -4,5 +4,32 @@
   },
   "appDesc": {
     "message": "Une extension qui vous permet de partager votre bureau avec d'autres utilisateurs Ubity Meet."
+  },
+  "pleaseSelectUbityMeet": {
+      "message": "Veuillez sélectionner Ubity's Meet dans la liste."
+  },
+  "recordingDuration": {
+      "message": "Durée d'enregistrement"
+  },
+  "startRecordingQuestion": {
+      "message": "Commencer à enregistrer cette conférence?"
+  },
+  "Yes": {
+      "message": "Oui"
+  },
+  "Cancel": {
+      "message": "Annuler"
+  },
+  "Recording___": {
+      "message": "Enregistrement en cours"
+  },
+  "stopRecordingQuestion": {
+      "message": "Arrêter l'enregistrement?"
+  },
+  "Stop": {
+      "message": "Arrêt"
+  },
+  "Continue": {
+      "message": "Continuer"
   }
 }

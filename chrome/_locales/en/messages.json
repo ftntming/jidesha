@@ -4,5 +4,32 @@
   },
   "appDesc": {
     "message": "An extension that allows you to share your desktop with other Ubity Meet users."
+  },
+  "pleaseSelectUbityMeet": {
+      "message": "Please, select Ubity's Meet from the list."
+  },
+  "recordingDuration": {
+      "message": "Recording duration"
+  },
+  "startRecordingQuestion": {
+      "message": "Start recording this meeting?"
+  },
+  "Yes": {
+      "message": "Yes"
+  },
+  "Cancel": {
+      "message": "Cancel"
+  },
+  "Recording___": {
+      "message": "Recording"
+  },
+  "stopRecordingQuestion": {
+      "message": "Stop recording?"
+  },
+  "Stop": {
+      "message": "Stop"
+  },
+  "Continue": {
+      "message": "Cancel"
   }
 }
