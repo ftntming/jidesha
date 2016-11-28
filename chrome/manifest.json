@@ -35,6 +35,6 @@
   },
   "page_action":{
       "default_icon":"ubity-logo-16x16.png",
-      "default_title":"Ubity Meet"
+      "default_title":"__MSG_appName__"
    }
 }

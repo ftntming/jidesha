@@ -28,22 +28,21 @@ chrome.runtime.onInstalled.addListener(function() {
   });
 });
 
-chrome.tabs.onSelectionChanged.addListener(function(tabId) {
-    chrome.tabs.get(tabId, function(tab) {
+function pageInfoCurrentTab(param){
+    var id = (typeof param == 'object' && param.tabId) ? param.tabId : param;
+    chrome.tabs.get(id, function(tab) {
         if (tab.url.match(/meet.*\.ubity\.com/)) {
             chrome.pageAction.setPopup({
-                tabId: tabId,
+                tabId: tab.id,
                 popup: 'page_action.html'
             });
-        } else {
-            /*chrome.pageAction.setPopup({
-                tabId: tabId,
-                popup: ''
-            });*/
-
         }
     });
-});
+}
+
+chrome.tabs.onUpdated.addListener(pageInfoCurrentTab);
+chrome.tabs.onActivated.addListener(pageInfoCurrentTab);
+
 
 
 chrome.runtime.onMessage.addListener(function (msg, sender, response) {
