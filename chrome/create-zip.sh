@@ -12,7 +12,9 @@ rm -r chrome.zip
  i18n.js \
  _locales/*/* \
  manifest.json \
- ubity-logo-128x128.png \
- ubity-logo-16x16.png \
- ubity-logo-48x48.png \
- 
+ images/ubity-logo-128x128.png \
+ images/ubity-logo-16x16.png \
+ images/ubity-logo-48x48.png \
+ images/recordRTC-progress-* \
+
+

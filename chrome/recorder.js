@@ -159,7 +159,7 @@ var Recorder = {
 
             alert(chrome.i18n.getMessage('nowRecording'));
 
-            autoSaveInterval = setInterval(saveAndContinue, 300000);
+            autoSaveInterval = setInterval(saveAndContinue, 600000);
         }
 
         //-
