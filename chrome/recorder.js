@@ -293,7 +293,7 @@ var Recorder = {
 
             chrome.pageAction.setIcon({
                 tabId: currentTabId,
-                path: 'ubity-logo-16x16.png'
+                path: 'images/ubity-logo-16x16.png'
             });
 
         }
