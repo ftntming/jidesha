@@ -1,17 +1,4 @@
 
-chrome.runtime.onMessage.addListener(function (msg, sender, response) {
-    //console.info("message received", msg, sender, response);
-    if (msg.from === 'recorder') {
-        if (msg.subject === 'recording') {
-            document.getElementById('start').style.display = 'none';
-            document.getElementById('stop').style.display = '';
-        } else if (msg.subject === 'stopped') {
-            document.getElementById('start').style.display = '';
-            document.getElementById('stop').style.display = 'none';
-        }
-    }
-});
-
 var checkIfIsRecording = function(){
     chrome.runtime.sendMessage({from: 'popup', subject: 'is-recording'},
         function(data){

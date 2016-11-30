@@ -1,9 +1,4 @@
-// Muaz Khan     - https://github.com/muaz-khan
-// MIT License   - https://www.WebRTC-Experiment.com/licence/
-// Source Code   - https://github.com/muaz-khan/Chrome-Extensions
 
-// this page is using desktopCapture API to capture and record screen
-// http://developer.chrome.com/extensions/desktopCapture.html
 
 // When the extension is installed or upgraded ...
 chrome.runtime.onInstalled.addListener(function() {
@@ -28,6 +23,25 @@ chrome.runtime.onInstalled.addListener(function() {
   });
 });
 
+function convertTime(miliseconds) {
+    var totalSeconds = Math.floor(miliseconds / 1000);
+    var minutes = Math.floor(totalSeconds / 60);
+    var seconds = totalSeconds - minutes * 60;
+
+    minutes += '';
+    seconds += '';
+
+    if (minutes.length === 1) {
+        // minutes = '0' + minutes;
+    }
+
+    if (seconds.length === 1) {
+        seconds = '0' + seconds;
+    }
+
+    return minutes + ':' + seconds;
+}
+
 function pageInfoCurrentTab(param){
     var id = (typeof param == 'object' && param.tabId) ? param.tabId : param;
     chrome.tabs.get(id, function(tab) {
@@ -49,316 +63,244 @@ chrome.runtime.onMessage.addListener(function (msg, sender, response) {
     //console.info("message received", msg, sender, response);
     if (msg.from === 'popup') {
         if (msg.subject === 'start-recording') {
-            getUserConfigs();
+            Recorder.start();
         } else if (msg.subject === 'stop-recording') {
-            stopScreenRecording();
+            Recorder.stop();
         } else if (msg.subject === 'is-recording') {
-            response({recording: isRecording,
-                duration:convertTime(Date.now() - initialTime)});
+            response({recording: Recorder.isRecording,
+                duration: convertTime(Date.now() - Recorder.initialTime)});
         }
     }
 });
 
 
 
+var Recorder = {
 
-function notifyRecording(duration){
-    chrome.runtime.sendMessage(
-        {from: 'recorder', subject: 'recording', duration: duration});
-}
+    mediaRecorder: null,
+    isRecording: false,
+    initialTime: 0,
 
-function notifyStopped(){
-    chrome.runtime.sendMessage({from: 'recorder', subject: 'stopped'});
-}
+    start: function() {
+        console.log("will start recording");
+        chrome.desktopCapture.chooseDesktopMedia(['tab', 'audio'], getStream);
 
-var currentTabId;
-var recorder;
-
-function captureDesktop(tab) {
-    currentTabId = tab.id;
-
-    if (recorder && recorder.stream && recorder.stream.onended) {
-        recorder.stream.onended();
-        return;
-    }
-
-    chrome.pageAction.setIcon({
-        tabId: currentTabId,
-        path: 'ubity-logo-16x16.png'
-    });
-
-    var screenSources = ['tab', 'audio'];
-
-    try {
-        chrome.desktopCapture.chooseDesktopMedia(
-            screenSources, /*tab,*/ onAccessApproved);
-    } catch (e) {
-        getUserMediaError(e);
-    }
-}
+        var mediaStream;
+        var continueAfterStop = false;
+        var recordedChunks = [];
+        var currentTabId;
+        var timer;
+        var meetRoomName = "";
+        var me = Recorder;
+        var autoSaveInterval;
 
 
 
-function onAccessApproved(chromeMediaSourceId) {
-    if (!chromeMediaSourceId || !chromeMediaSourceId.toString().length) {
-        if (getChromeVersion() < 53) {
-            getUserMediaError('!mediaSourceId, version < 53');
-            return;
-        }
 
-        askToStopExternalStreams();
-        setDefaults();
-        chrome.runtime.reload();
-        return;
-    }
-
-    var constraints = {
-        audio: {
-            mandatory: {
-                chromeMediaSource: 'desktop',
-                chromeMediaSourceId: chromeMediaSourceId
-            },
-            optional: []
-        },
-        video: {
-            mandatory: {
-                chromeMediaSource: 'desktop',
-                chromeMediaSourceId: chromeMediaSourceId,
-                maxFrameRate: 24,
-                maxWidth: 1280,
-                maxHeight: 720
-            },
-            optional: []
-        }
-    };
-
-    chrome.tabs.getSelected(function(_tab){
-        if (_tab.url.match(/meet.*ubity\.com/)) {
-            navigator.webkitGetUserMedia(
-                constraints, gotStream, getUserMediaError);
-        } else {
-            alert(chrome.i18n.getMessage("pleaseSelectUbityMeet"));
-            getUserConfigs();
-            return;
-        }
-    });
-    //navigator.webkitGetUserMedia(constraints, gotStream, getUserMediaError);
-
-    function gotStream(stream, extra) {
-        var options = {
-            type: 'video',
-            disableLogs: false,
-            audioBitsPerSecond: 128 * 1000,
-            videoBitsPerSecond: 100 * 1000, // vp8 (smallest 100kbps)
-            recorderType: MediaStreamRecorder // StereoAudioRecorder
-        };
-
-        if (typeof localAudio !== 'undefined'){
-            stream.addTrack(localAudio);
-        }
-
-        recorder = RecordRTC(stream, options);
-
-        try {
-            recorder.startRecording();
-            alreadyHadGUMError = false;
-        } catch (e) {
-            getUserMediaError(e);
-        }
-
-        recorder.stream = stream;
-
-        isRecording = true;
-        onRecording();
-
-        alert("Now recording...");
-
-        recorder.stream.onended = function() {
-            if (recorder && recorder.stream) {
-                recorder.stream.onended = function() {};
+        //-
+        function getStream(streamId) {
+            if (typeof streamId === 'object' && streamId.streamId) {
+                streamId = streamId.streamId;
+            }
+            if (!streamId || !streamId.toString().length) {
+                console.error("empty streamId", streamId)
+                return;
             }
 
-            stopScreenRecording();
-        };
+            var constraints = {
+                audio: {
+                    mandatory: {
+                        chromeMediaSource: 'desktop',
+                        chromeMediaSourceId: streamId
+                    },
+                    optional: []
+                },
+                video: {
+                    mandatory: {
+                        chromeMediaSource: 'desktop',
+                        chromeMediaSourceId: streamId,
+                        maxFrameRate: 24,
+                        maxWidth: 1280/2,
+                        maxHeight: 720/2
+                    },
+                    optional: []
+                }
+            };
 
-        recorder.stream.getVideoTracks()[0].onended = function() {
-            if (recorder && recorder.stream && recorder.stream.onended) {
-                recorder.stream.onended();
-            }
-        };
-
-        initialTime = Date.now()
-        timer = setInterval(checkTime, 100);
-    }
-}
-
-function askToStopExternalStreams() {
-    try {
-        runtimePort.postMessage({
-            stopStream: true,
-            messageFromContentScript1234: true
-        });
-    } catch (e) {}
-}
-
-function stopScreenRecording() {
-    notifyStopped();
-    isRecording = false;
-
-    if (typeof recorder !== 'undefined' && recorder.stopRecording) {
-        recorder.stopRecording(function() {
-            invokeSaveAsDialog(recorder.blob, 'RecordRTC-' +
-                (new Date).toISOString().replace(/:|\./g, '-') + '.webm');
-
-            setTimeout(function() {
-                setDefaults();
-                chrome.runtime.reload();
-            }, 1000);
-
-            askToStopExternalStreams();
-
-        });
-    }
-
-    if (timer) {
-        clearTimeout(timer);
-    }
-    setBadgeText('');
-
-    chrome.pageAction.setTitle({
-        title: chrome.i18n.getMessage("appName")
-    });
-}
-
-function setDefaults() {
-    chrome.pageAction.setIcon({
-        tabId: currentTabId,
-        path: 'ubity-logo-16x16.png'
-    });
-
-    if (recorder && recorder.stream) {
-        recorder.stream.stop();
-        if (recorder && recorder.stream && recorder.stream.onended) {
-            recorder.stream.onended();
-        }
-    }
-
-    recorder = null;
-    isRecording = false;
-    imgIndex = 0;
-}
-
-var isRecording = false;
-var images = ['recordRTC-progress-1.png',
-    'recordRTC-progress-2.png',
-    'recordRTC-progress-3.png',
-    'recordRTC-progress-4.png',
-    'recordRTC-progress-5.png'];
-var imgIndex = 0;
-var reverse = false;
-
-function onRecording() {
-    chrome.pageAction.setIcon({
-        tabId: currentTabId,
-        path: 'images/' + images[imgIndex]
-    });
-
-    if (!reverse) {
-        imgIndex++;
-
-        if (imgIndex > images.length - 1) {
-            imgIndex = images.length - 1;
-            reverse = true;
-        }
-    } else {
-        imgIndex--;
-
-        if (imgIndex < 0) {
-            imgIndex = 1;
-            reverse = false;
-        }
-    }
-
-    if (isRecording) {
-        setTimeout(onRecording, 800);
-        return;
-    }
-
-    chrome.pageAction.setIcon({
-        tabId: currentTabId,
-        path: 'ubity-logo-16x16.png'
-    });
-}
-
-function setBadgeText(text) {
-    /*
-    chrome.pageAction.setBadgeBackgroundColor({
-        color: [255, 0, 0, 255]
-    });
-
-    chrome.pageAction.setBadgeText({
-        text: text + ''
-    });*/
-}
-
-var initialTime, timer;
-
-function checkTime() {
-    if (!initialTime) return;
-    var timeDifference = Date.now() - initialTime;
-    var formatted = convertTime(timeDifference);
-    setBadgeText(formatted);
-
-    chrome.pageAction.setTitle({
-        tabId: currentTabId,
-        title: chrome.i18n.getMessage("recordingDuration") + ': ' + formatted
-    });
-
-}
-
-function convertTime(miliseconds) {
-    var totalSeconds = Math.floor(miliseconds / 1000);
-    var minutes = Math.floor(totalSeconds / 60);
-    var seconds = totalSeconds - minutes * 60;
-
-    minutes += '';
-    seconds += '';
-
-    if (minutes.length === 1) {
-        // minutes = '0' + minutes;
-    }
-
-    if (seconds.length === 1) {
-        seconds = '0' + seconds;
-    }
-
-    return minutes + ':' + seconds;
-}
-
-function getChromeVersion() {
-    var raw = navigator.userAgent.match(/Chrom(e|ium)\/([0-9]+)\./);
-    return raw ? parseInt(raw[2], 10) : 52;
-}
-
-function getUserConfigs() {
-    chrome.tabs.query({ currentWindow: true, active: true }, function(tabs){
-        console.log("current tab", tabs);
-
-        if(tabs.length == 0){
-            console.log(chrome.runtime.getManifest());
-            chrome.tabs.query({ url: chrome.runtime.getManifest().externally_connectable.matches }, function(tabs2){
-                captureDesktop(tabs2[0]);
+            chrome.tabs.getSelected(function(tab){
+                if (tab.url.match(/meet.*ubity\.com/)) {
+                    meetRoomName = tab.url.replace(/.*\//, '');
+                    currentTabId = tab.id
+                    navigator.webkitGetUserMedia(
+                        constraints, gotStream, getUserMediaError);
+                } else {
+                    alert(chrome.i18n.getMessage("pleaseSelectUbityMeet"));
+                    Recorder.start();
+                    return;
+                }
             });
-        } else {
-            captureDesktop(tabs[0]);
+
+
         }
-    });
-}
+
+        //-
+        function gotStream(stream) {
+            console.log("gotStream", stream);
+
+            stream.getVideoTracks()[0].onended = onStreamStop;
+
+            mediaStream = new MediaStream(stream);
+            me.mediaRecorder = createMediaRecorder();
+
+            me.isRecording = true;
+            me.initialTime = Date.now();
+            onRecording();
+            watchTabUrl();
+
+            autoSaveInterval = setInterval(saveAndContinue, 300000);
+        }
+
+        //-
+        function createMediaRecorder(){
+            var mediaRecorder = new MediaRecorder(mediaStream);
+            mediaRecorder.ondataavailable = onDataAvailable;
+            mediaRecorder.onstop = onStop;
+            mediaRecorder.start(1000);
+            return mediaRecorder;
+        }
+
+        //-
+        function saveAndContinue(){
+            if (me.mediaRecorder.state !== 'recording') {
+                clearInterval(autoSaveInterval);
+                return;
+            }
+            continueAfterStop = true;
+            me.mediaRecorder.stop();
+        }
+
+        //-
+        function onStreamStop(){
+            continueAfterStop = false;
+            clearInterval(autoSaveInterval);
+            onStop();
+        }
+
+        //-
+        function onStop(){
+            me.isRecording = continueAfterStop;
+            //console.log("invoking save as, chunks = ", recordedChunks);
+            //invoking save as...
+            saveBlob();
+            continueAfterStop = false;
+        }
+
+        //-
+        function saveBlob(){
+            var blob = new Blob(recordedChunks, {type: 'video/webm'});
+            recordedChunks = [];
+            if (continueAfterStop){
+                me.mediaRecorder = createMediaRecorder();
+            }
+            if (blob.size === 0) {
+                console.error("blob.size=0");
+                return;
+            }
+            var filename = generateFileName();
+            var file = new File([blob], filename);
+            var hyperlink = document.createElement('a');
+            hyperlink.href = URL.createObjectURL(file);
+            hyperlink.target = '_blank';
+            hyperlink.download = filename;
+            var evt = new MouseEvent('click', {
+                view: window,
+                bubbles: true,
+                cancelable: true
+            });
+            hyperlink.dispatchEvent(evt);
+            URL.revokeObjectURL(hyperlink.href);
+        }
+
+        //-
+        function generateFileName(){
+            var zero = function(x){ return x < 10 ? '0'+x: ''+x };
+            var d = new Date();
+            var date = d.getFullYear() + '-' +
+                zero(d.getMonth()+1) + '-' +
+                zero(d.getDate()) + '_' +
+                zero(d.getHours()) + '-' +
+                zero(d.getMinutes()) + '-' +
+                zero(d.getSeconds());
+            var filename = 'UbityMeet-' + meetRoomName + "-" + date + '.webm';
+            return filename.replace(/[^0-9a-zA-Z-_\.]/g, '_');
+        }
+
+        //-
+        function onDataAvailable(av){
+            //console.log("dataAvailable", av);
+            if (av.data && av.data.size > 0) {
+                recordedChunks.push(av.data);
+            }
+        }
+
+        //-
+        function getUserMediaError(e){
+            console.error(e);
+        }
+
+        //-
+        var imgIndex = 1;
+        var direction = 1;
+        function onRecording() {
+            chrome.pageAction.setIcon({
+                tabId: currentTabId,
+                path: 'images/recordRTC-progress-' + imgIndex + '.png'
+            });
+            imgIndex += direction;
+
+            if (imgIndex == 1) {
+                direction = 1;
+            }
+            if (imgIndex == 5) {
+                direction = -1;
+            }
+
+            var timeDifference = Date.now() - me.initialTime;
+            if (!isNaN(timeDifference)) {
+                chrome.pageAction.setTitle({
+                    tabId: currentTabId,
+                    title: chrome.i18n.getMessage("recordingDuration") +
+                            ': ' + convertTime(timeDifference)
+                });
+            }
+
+            if (me.isRecording) {
+                setTimeout(onRecording, 800);
+                return;
+            }
+
+            chrome.pageAction.setIcon({
+                tabId: currentTabId,
+                path: 'ubity-logo-16x16.png'
+            });
+
+        }
+
+        //-
+        function watchTabUrl(){
+            chrome.tabs.get(currentTabId, function(tab) {
+                if (! tab.url.match(/meet.*\.ubity\.com/)) {
+                    Recorder.stop();
+                    return;
+                }
+                setTimeout(watchTabUrl, 5000);
+            });
+        }
+    },
 
 
-function getUserMediaError(e) {
-    console.error("getUserMediaError", e);
-    askToStopExternalStreams();
-    setDefaults();
-    chrome.runtime.reload();
+    stop: function(){
+        console.log("stopping");
+        Recorder.mediaRecorder.stop();
+    }
 }

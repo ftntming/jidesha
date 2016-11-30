@@ -53,15 +53,9 @@ chrome.runtime.onMessageExternal.addListener(
             return true; // Preserve sendResponse for future use
         } else if(request.recordTab) {
             if (request.startRecording) {
-                /*
-                var tab = sender.tab;
-                tab.url = sender.url;
-                console.log("recordTab", tab);
-                captureDesktop(tab); //BUG
-                */
-                getUserConfigs();
+                Recorder.start();
             } else {
-                stopScreenRecording();
+                Recorder.stop();
             }
             return true;
         } else {

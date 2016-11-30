@@ -31,5 +31,8 @@
   },
   "Continue": {
       "message": "Cancel"
+  },
+  "autoSaveMsg": {
+      "message": "Recording files will be saved automatically every 5 minutes."
   }
 }
