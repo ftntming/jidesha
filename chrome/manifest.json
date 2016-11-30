@@ -9,15 +9,14 @@
   "version": "0.2.11",
   "minimum_chrome_version": "49",
   "icons": {
-    "16": "ubity-logo-16x16.png",
-    "48": "ubity-logo-48x48.png",
-    "128": "ubity-logo-128x128.png"
+    "16": "images/ubity-logo-16x16.png",
+    "48": "images/ubity-logo-48x48.png",
+    "128": "images/ubity-logo-128x128.png"
   },
   "background": {
         "scripts": [
             "background.js",
-            "recorder.js",
-            "RecordRTC.js"
+            "recorder.js"
         ],
         "persistent": true
   },
@@ -34,7 +33,7 @@
       ]
   },
   "page_action":{
-      "default_icon":"ubity-logo-16x16.png",
+      "default_icon":"images/ubity-logo-16x16.png",
       "default_title":"__MSG_appName__"
    }
 }

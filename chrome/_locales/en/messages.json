@@ -34,5 +34,8 @@
   },
   "autoSaveMsg": {
       "message": "Recording files will be saved automatically every 5 minutes."
+  },
+  "nowRecording": {
+      "message": "Now recording..."
   }
 }

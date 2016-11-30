@@ -149,7 +149,7 @@ var Recorder = {
 
             stream.getVideoTracks()[0].onended = onStreamStop;
 
-            mediaStream = new MediaStream(stream);
+            mediaStream = createMediaStream(stream);
             me.mediaRecorder = createMediaRecorder();
 
             me.isRecording = true;
@@ -157,7 +157,19 @@ var Recorder = {
             onRecording();
             watchTabUrl();
 
+            alert(chrome.i18n.getMessage('nowRecording'));
+
             autoSaveInterval = setInterval(saveAndContinue, 300000);
+        }
+
+        //-
+        function createMediaStream(stream){
+            if (typeof MediaStream === 'undefined' &&
+                typeof webkitMediaStream !== 'undefined') {
+                return new webkitMediaStream(stream);
+            } else {
+                return new MediaStream(stream);
+            }
         }
 
         //-
@@ -197,7 +209,7 @@ var Recorder = {
 
         //-
         function saveBlob(){
-            var blob = new Blob(recordedChunks, {type: 'video/webm'});
+            var blob = new Blob(recordedChunks, {type: 'video/webm;'});
             recordedChunks = [];
             if (continueAfterStop){
                 me.mediaRecorder = createMediaRecorder();
