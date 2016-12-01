@@ -34,6 +34,7 @@
   },
   "page_action":{
       "default_icon":"images/ubity-logo-16x16.png",
-      "default_title":"__MSG_appName__"
+      "default_title":"__MSG_appName__",
+      "default_popup":"page_action.html"
    }
 }

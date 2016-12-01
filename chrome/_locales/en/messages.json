@@ -5,7 +5,7 @@
   "appDesc": {
     "message": "An extension that allows you to share your desktop with other Ubity Meet users."
   },
-  "pleaseSelectUbityMeet": {
+  "pleaseSelectFromList": {
       "message": "Please, select Ubity's Meet from the list."
   },
   "recordingDuration": {

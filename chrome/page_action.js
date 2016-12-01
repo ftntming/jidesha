@@ -21,31 +21,15 @@ window.addEventListener('DOMContentLoaded', function () {
     document.getElementById('start-yes').onclick = function() {
         chrome.runtime.sendMessage({from: 'popup', subject: 'start-recording'});
         //window.close();
-    }
+    };
 
     document.getElementById('stop-yes').onclick = function() {
         chrome.runtime.sendMessage({from: 'popup', subject: 'stop-recording'});
         //window.close();
-    }
+    };
 
 
-    document.getElementById('cancel1').onclick = function() {window.close()};
-    document.getElementById('cancel2').onclick = function() {window.close()};
-
-
-
-/*    chrome.tabs.query(
-        {active: true,currentWindow: true},
-        function (tabs) {
-            console.log('tabs', tabs);
-            chrome.tabs.sendMessage(
-                tabs[0].id,
-                {from: 'popup', subject: 'getPageActionDocument'},
-                getPageActionDocument
-            );
-        }
-    );
-*/
-
+    document.getElementById('cancel1').onclick = function() {window.close();};
+    document.getElementById('cancel2').onclick = function() {window.close();};
 
 });

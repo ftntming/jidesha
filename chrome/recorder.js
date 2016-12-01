@@ -1,6 +1,13 @@
 
+/**
+* Restricts the recording feature to URLs matching this regexp
+*/
+var URL_REGEXP = /meet.*\.ubity\.com/;
 
-// When the extension is installed or upgraded ...
+
+/**
+* Update/set listeners when the extension is installed or upgraded ...
+*/
 chrome.runtime.onInstalled.addListener(function() {
   // Replace all rules ...
   chrome.declarativeContent.onPageChanged.removeRules(undefined, function() {
@@ -10,10 +17,7 @@ chrome.runtime.onInstalled.addListener(function() {
         // That fires when a page's URL contains a 'g' ...
         conditions: [
           new chrome.declarativeContent.PageStateMatcher({
-            pageUrl: { urlContains: '.ubity.com' },
-          }),
-          new chrome.declarativeContent.PageStateMatcher({
-            pageUrl: { urlContains: 'meet.' },
+            pageUrl: { urlMatches: URL_REGEXP.toString() },
           })
         ],
         // And shows the extension's page action.
@@ -23,6 +27,9 @@ chrome.runtime.onInstalled.addListener(function() {
   });
 });
 
+/**
+* Convert milliseconds to human readable format
+*/
 function convertTime(miliseconds) {
     var totalSeconds = Math.floor(miliseconds / 1000);
     var minutes = Math.floor(totalSeconds / 60);
@@ -42,23 +49,9 @@ function convertTime(miliseconds) {
     return minutes + ':' + seconds;
 }
 
-function pageInfoCurrentTab(param){
-    var id = (typeof param == 'object' && param.tabId) ? param.tabId : param;
-    chrome.tabs.get(id, function(tab) {
-        if (tab.url.match(/meet.*\.ubity\.com/)) {
-            chrome.pageAction.setPopup({
-                tabId: tab.id,
-                popup: 'page_action.html'
-            });
-        }
-    });
-}
-
-chrome.tabs.onUpdated.addListener(pageInfoCurrentTab);
-chrome.tabs.onActivated.addListener(pageInfoCurrentTab);
-
-
-
+/**
+* To communicate with page_action popup
+*/
 chrome.runtime.onMessage.addListener(function (msg, sender, response) {
     //console.info("message received", msg, sender, response);
     if (msg.from === 'popup') {
@@ -68,13 +61,17 @@ chrome.runtime.onMessage.addListener(function (msg, sender, response) {
             Recorder.stop();
         } else if (msg.subject === 'is-recording') {
             response({recording: Recorder.isRecording,
-                duration: convertTime(Date.now() - Recorder.initialTime)});
+                duration: (Recorder.isRecording ?
+                    convertTime(Date.now() - Recorder.initialTime) : 0)
+            });
         }
     }
 });
 
 
-
+/**
+* Browser tab recording that runs top over WebRTC getUserMedia API.
+*/
 var Recorder = {
 
     mediaRecorder: null,
@@ -82,28 +79,30 @@ var Recorder = {
     initialTime: 0,
 
     start: function() {
-        console.log("will start recording");
+        console.info("Will start recording");
+
+        //Prompt user to select a browser tab.
         chrome.desktopCapture.chooseDesktopMedia(['tab', 'audio'], getStream);
 
+        var me = Recorder;
         var mediaStream;
         var continueAfterStop = false;
         var recordedChunks = [];
         var currentTabId;
         var timer;
         var meetRoomName = "";
-        var me = Recorder;
         var autoSaveInterval;
 
 
 
 
-        //-
+        //- When browser tab is selected
         function getStream(streamId) {
             if (typeof streamId === 'object' && streamId.streamId) {
                 streamId = streamId.streamId;
             }
             if (!streamId || !streamId.toString().length) {
-                console.error("empty streamId", streamId)
+                console.error("empty streamId", streamId);
                 return;
             }
 
@@ -127,14 +126,23 @@ var Recorder = {
                 }
             };
 
+            //Checking if the selected tab is allowed to record
             chrome.tabs.getSelected(function(tab){
-                if (tab.url.match(/meet.*ubity\.com/)) {
+                if (tab.url.match(URL_REGEXP)) {
                     meetRoomName = tab.url.replace(/.*\//, '');
-                    currentTabId = tab.id
-                    navigator.webkitGetUserMedia(
-                        constraints, gotStream, getUserMediaError);
+                    currentTabId = tab.id;
+
+                    if (typeof navigator.getUserMedia === 'undefined' &&
+                        typeof navigator.webkitGetUserMedia !== 'undefined') {
+                        navigator.webkitGetUserMedia(
+                            constraints, gotStream, getUserMediaError);
+                    } else {
+                        navigator.getUserMedia(
+                            constraints, gotStream, getUserMediaError);
+                    }
+
                 } else {
-                    alert(chrome.i18n.getMessage("pleaseSelectUbityMeet"));
+                    alert(chrome.i18n.getMessage("pleaseSelectFromList"));
                     Recorder.start();
                     return;
                 }
@@ -145,7 +153,7 @@ var Recorder = {
 
         //-
         function gotStream(stream) {
-            console.log("gotStream", stream);
+            console.info("gotStream", stream);
 
             stream.getVideoTracks()[0].onended = onStreamStop;
 
@@ -207,7 +215,7 @@ var Recorder = {
             continueAfterStop = false;
         }
 
-        //-
+        //- Ask browser to save the current blub chunks
         function saveBlob(){
             var blob = new Blob(recordedChunks, {type: 'video/webm;'});
             recordedChunks = [];
@@ -235,7 +243,7 @@ var Recorder = {
 
         //-
         function generateFileName(){
-            var zero = function(x){ return x < 10 ? '0'+x: ''+x };
+            var zero = function(x){ return x < 10 ? '0'+x: ''+x; };
             var d = new Date();
             var date = d.getFullYear() + '-' +
                 zero(d.getMonth()+1) + '-' +
@@ -260,7 +268,7 @@ var Recorder = {
             console.error(e);
         }
 
-        //-
+        //- Animate the page_action icon
         var imgIndex = 1;
         var direction = 1;
         function onRecording() {
@@ -298,10 +306,10 @@ var Recorder = {
 
         }
 
-        //-
+        //- Current tab url monitor
         function watchTabUrl(){
             chrome.tabs.get(currentTabId, function(tab) {
-                if (! tab.url.match(/meet.*\.ubity\.com/)) {
+                if (! tab.url.match(URL_REGEXP)) {
                     Recorder.stop();
                     return;
                 }
@@ -315,4 +323,4 @@ var Recorder = {
         console.log("stopping");
         Recorder.mediaRecorder.stop();
     }
-}
+};
