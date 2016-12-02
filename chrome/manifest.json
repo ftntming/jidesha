@@ -16,13 +16,16 @@
   "background": {
         "scripts": [
             "background.js",
-            "recorder.js"
+            "recorder.js",
+            "storage.js",
+            "utils.js"
         ],
         "persistent": true
   },
   "permissions": [
       "tabs",
       "storage",
+      "unlimitedStorage",
       "desktopCapture",
       "declarativeContent"
   ],

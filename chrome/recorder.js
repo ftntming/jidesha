@@ -6,6 +6,15 @@ var URL_REGEXP = /meet.*\.ubity\.com/;
 
 
 /**
+* Will automatically save recordings every x seconds
+* set 0 to disable
+* no need to auto-save when using indexedDB
+*/
+var AUTO_SAVE_TIMEOUT = 0;  //600 = 10minutes
+
+
+
+/**
 * Update/set listeners when the extension is installed or upgraded ...
 */
 chrome.runtime.onInstalled.addListener(function() {
@@ -28,28 +37,6 @@ chrome.runtime.onInstalled.addListener(function() {
 });
 
 /**
-* Convert milliseconds to human readable format
-*/
-function convertTime(miliseconds) {
-    var totalSeconds = Math.floor(miliseconds / 1000);
-    var minutes = Math.floor(totalSeconds / 60);
-    var seconds = totalSeconds - minutes * 60;
-
-    minutes += '';
-    seconds += '';
-
-    if (minutes.length === 1) {
-        // minutes = '0' + minutes;
-    }
-
-    if (seconds.length === 1) {
-        seconds = '0' + seconds;
-    }
-
-    return minutes + ':' + seconds;
-}
-
-/**
 * To communicate with page_action popup
 */
 chrome.runtime.onMessage.addListener(function (msg, sender, response) {
@@ -69,6 +56,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, response) {
 });
 
 
+
 /**
 * Browser tab recording that runs top over WebRTC getUserMedia API.
 */
@@ -85,16 +73,13 @@ var Recorder = {
         chrome.desktopCapture.chooseDesktopMedia(['tab', 'audio'], getStream);
 
         var me = Recorder;
-        var mediaStream;
         var continueAfterStop = false;
-        var recordedChunks = [];
+        //var recordedChunks = [];
         var currentTabId;
         var timer;
         var meetRoomName = "";
         var autoSaveInterval;
-
-
-
+        var mediaStream;
 
         //- When browser tab is selected
         function getStream(streamId) {
@@ -167,7 +152,10 @@ var Recorder = {
 
             alert(chrome.i18n.getMessage('nowRecording'));
 
-            autoSaveInterval = setInterval(saveAndContinue, 600000);
+            if (AUTO_SAVE_TIMEOUT > 0){
+                autoSaveInterval = setInterval(saveAndContinue,
+                    AUTO_SAVE_TIMEOUT * 1000);
+            }
         }
 
         //-
@@ -201,6 +189,9 @@ var Recorder = {
 
         //-
         function onStreamStop(){
+            // On stream stop means that user canceled the streaming
+            // or closed the tab. There is no way to continue recording
+            // after this.
             continueAfterStop = false;
             clearInterval(autoSaveInterval);
             onStop();
@@ -217,49 +208,28 @@ var Recorder = {
 
         //- Ask browser to save the current blub chunks
         function saveBlob(){
-            var blob = new Blob(recordedChunks, {type: 'video/webm;'});
-            recordedChunks = [];
+            //var blob = new Blob(recordedChunks, {type: 'video/webm'});
+            //recordedChunks = [];
             if (continueAfterStop){
                 me.mediaRecorder = createMediaRecorder();
             }
-            if (blob.size === 0) {
-                console.error("blob.size=0");
-                return;
-            }
-            var filename = generateFileName();
-            var file = new File([blob], filename);
-            var hyperlink = document.createElement('a');
-            hyperlink.href = URL.createObjectURL(file);
-            hyperlink.target = '_blank';
-            hyperlink.download = filename;
-            var evt = new MouseEvent('click', {
-                view: window,
-                bubbles: true,
-                cancelable: true
-            });
-            hyperlink.dispatchEvent(evt);
-            URL.revokeObjectURL(hyperlink.href);
-        }
-
-        //-
-        function generateFileName(){
-            var zero = function(x){ return x < 10 ? '0'+x: ''+x; };
-            var d = new Date();
-            var date = d.getFullYear() + '-' +
-                zero(d.getMonth()+1) + '-' +
-                zero(d.getDate()) + '_' +
-                zero(d.getHours()) + '-' +
-                zero(d.getMinutes()) + '-' +
-                zero(d.getSeconds());
-            var filename = 'UbityMeet-' + meetRoomName + "-" + date + '.webm';
-            return filename.replace(/[^0-9a-zA-Z-_\.]/g, '_');
+            //if (blob.size === 0) {
+            //    console.error("blob.size=0");
+            //    return;
+            //}
+            var filename = 'UbityMeet-' + meetRoomName + "-" +
+                getFormatedDate() + '.webm';
+            //saveFileAs(blob, filename);
+            //Storage.clearStorage();
+            Storage.saveStorageToFile(filename);
         }
 
         //-
         function onDataAvailable(av){
             //console.log("dataAvailable", av);
             if (av.data && av.data.size > 0) {
-                recordedChunks.push(av.data);
+                //recordedChunks.push(av.data);
+                Storage.storeBlob(av.data);
             }
         }
 
@@ -323,4 +293,5 @@ var Recorder = {
         console.log("stopping");
         Recorder.mediaRecorder.stop();
     }
+
 };

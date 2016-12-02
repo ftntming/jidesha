@@ -7,6 +7,8 @@ rm -r chrome.zip
 /usr/bin/zip chrome.zip \
  background.js \
  recorder.js \
+ storage.js \
+ utils.js \
  page_action.html \
  page_action.js \
  i18n.js \
