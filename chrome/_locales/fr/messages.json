@@ -32,9 +32,6 @@
   "Continue": {
       "message": "Continuer"
   },
-  "autoSaveMsg": {
-      "message": "Les fichiers seront sauvegardés automatiquement chaque 10 minutes."
-  },
   "nowRecording": {
       "message": "Enregistrement en cours..."
   }

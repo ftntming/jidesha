@@ -32,9 +32,6 @@
   "Continue": {
       "message": "Cancel"
   },
-  "autoSaveMsg": {
-      "message": "Recording files will be saved automatically every 10 minutes."
-  },
   "nowRecording": {
       "message": "Now recording..."
   }

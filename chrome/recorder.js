@@ -204,6 +204,8 @@ var Recorder = {
             //invoking save as...
             saveBlob();
             continueAfterStop = false;
+            mediaStream.getVideoTracks()[0].stop();
+            mediaStream.getAudioTracks()[0].stop();
         }
 
         //- Ask browser to save the current blub chunks
