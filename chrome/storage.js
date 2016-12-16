@@ -15,7 +15,7 @@ var Storage = {
 
         var createObjectStore = function (dataBase) {
             // Create an objectStore
-            console.log("Creating objectStore")
+            console.log("Creating objectStore");
             dataBase.createObjectStore("recording");
         };
 
@@ -62,12 +62,9 @@ var Storage = {
         var transaction = Storage.db.transaction(["recording"],"readwrite");
 
         // Put the blob into the dabase
-        var put = transaction.objectStore("recording").put(blob,
-            "blob_" + Storage.currentIdx);
-        var put = transaction.objectStore("recording").put(Storage.currentIdx,
-            "index");
-
-        Storage.currentIdx++;
+        var i = Storage.currentIdx++;
+        transaction.objectStore("recording").put(blob, "blob_" + i);
+        transaction.objectStore("recording").put(i, "index");
     },
 
 
@@ -86,7 +83,7 @@ var Storage = {
 
         transaction.objectStore("recording").get("index")
             .onsuccess = function (e) {
-                var idx = e.target.result
+                var idx = e.target.result;
                 console.log("Got idx!", idx);
                 if (typeof idx !== 'undefined' && idx > 0) {
                     maxIdx = idx;
@@ -115,6 +112,8 @@ var Storage = {
             var blob = new Blob(chunks, {type: 'video/webm'});
             saveFileAs(blob, filename ? filename : "UbityMeet-RECOVERED.webm");
             Storage.clearStorage();
+            //show saved file:
+            chrome.tabs.create({url: "chrome://downloads/"});
         }
 
 

@@ -20,6 +20,9 @@
   "Cancel": {
       "message": "Annuler"
   },
+  "Record": {
+      "message": "Enregistrer"
+  },
   "Recording___": {
       "message": "Enregistrement en cours"
   },
@@ -34,5 +37,11 @@
   },
   "nowRecording": {
       "message": "Enregistrement en cours..."
+  },
+  "PleaseWait___": {
+      "message": "S'il vous plaît, attendez..."
+  },
+  "PleaseSelect___": {
+      "message": "Pour enregistrer votre session sélectionnez Ubity's Meet dans la prochaine fenêtre."
   }
 }

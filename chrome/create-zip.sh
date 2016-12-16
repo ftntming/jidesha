@@ -18,5 +18,4 @@ rm -r chrome.zip
  images/ubity-logo-16x16.png \
  images/ubity-logo-48x48.png \
  images/recordRTC-progress-* \
-
-
+ images/loading.gif \

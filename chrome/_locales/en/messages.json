@@ -20,6 +20,9 @@
   "Cancel": {
       "message": "Cancel"
   },
+  "Record": {
+      "message": "Record"
+  },
   "Recording___": {
       "message": "Recording"
   },
@@ -30,9 +33,15 @@
       "message": "Stop"
   },
   "Continue": {
-      "message": "Cancel"
+      "message": "Continue"
   },
   "nowRecording": {
       "message": "Now recording..."
+  },
+  "PleaseWait___": {
+      "message": "Please wait..."
+  },
+  "PleaseSelect___": {
+      "message": "To record your session please select Ubity's Meet on the next window."
   }
 }

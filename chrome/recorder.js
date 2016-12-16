@@ -6,15 +6,6 @@ var URL_REGEXP = /meet.*\.ubity\.com/;
 
 
 /**
-* Will automatically save recordings every x seconds
-* set 0 to disable
-* no need to auto-save when using indexedDB
-*/
-var AUTO_SAVE_TIMEOUT = 0;  //600 = 10minutes
-
-
-
-/**
 * Update/set listeners when the extension is installed or upgraded ...
 */
 chrome.runtime.onInstalled.addListener(function() {
@@ -66,7 +57,7 @@ var Recorder = {
     isRecording: false,
     initialTime: 0,
 
-    start: function() {
+    start: function(hd) {
         console.info("Will start recording");
 
         //Prompt user to select a browser tab.
@@ -76,13 +67,13 @@ var Recorder = {
         var continueAfterStop = false;
         //var recordedChunks = [];
         var currentTabId;
-        var timer;
         var meetRoomName = "";
         var autoSaveInterval;
         var mediaStream;
 
         //- When browser tab is selected
         function getStream(streamId) {
+
             if (typeof streamId === 'object' && streamId.streamId) {
                 streamId = streamId.streamId;
             }
@@ -152,10 +143,6 @@ var Recorder = {
 
             alert(chrome.i18n.getMessage('nowRecording'));
 
-            if (AUTO_SAVE_TIMEOUT > 0){
-                autoSaveInterval = setInterval(saveAndContinue,
-                    AUTO_SAVE_TIMEOUT * 1000);
-            }
         }
 
         //-
@@ -173,52 +160,28 @@ var Recorder = {
             var mediaRecorder = new MediaRecorder(mediaStream);
             mediaRecorder.ondataavailable = onDataAvailable;
             mediaRecorder.onstop = onStop;
-            mediaRecorder.start(1000);
+            mediaRecorder.start(2000);
             return mediaRecorder;
         }
 
         //-
-        function saveAndContinue(){
-            if (me.mediaRecorder.state !== 'recording') {
-                clearInterval(autoSaveInterval);
-                return;
-            }
-            continueAfterStop = true;
-            me.mediaRecorder.stop();
-        }
-
-        //-
         function onStreamStop(){
-            // On stream stop means that user canceled the streaming
-            // or closed the tab. There is no way to continue recording
-            // after this.
-            continueAfterStop = false;
-            clearInterval(autoSaveInterval);
             onStop();
         }
 
         //-
         function onStop(){
-            me.isRecording = continueAfterStop;
+            me.isRecording = false;
             //console.log("invoking save as, chunks = ", recordedChunks);
             //invoking save as...
             saveBlob();
-            continueAfterStop = false;
+            mediaStream.getVideoTracks()[0].onended = function(){};
             mediaStream.getVideoTracks()[0].stop();
             mediaStream.getAudioTracks()[0].stop();
         }
 
         //- Ask browser to save the current blub chunks
         function saveBlob(){
-            //var blob = new Blob(recordedChunks, {type: 'video/webm'});
-            //recordedChunks = [];
-            if (continueAfterStop){
-                me.mediaRecorder = createMediaRecorder();
-            }
-            //if (blob.size === 0) {
-            //    console.error("blob.size=0");
-            //    return;
-            //}
             var filename = 'UbityMeet-' + meetRoomName + "-" +
                 getFormatedDate() + '.webm';
             //saveFileAs(blob, filename);

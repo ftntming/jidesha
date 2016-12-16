@@ -4,13 +4,50 @@
     <script type="text/javascript" src="page_action.js"></script>
     <script type="text/javascript" src="i18n.js"></script>
   </head>
+  <style>
+  body{
+     font-size: 14px;
+  }
+  button{
+     border-radius: 4px;
+     border: 1px solid #ccc;
+     background-color: #fff;
+     padding: 6px 12px;
+     color: #000;
+  }
+  button.ok{
+     background-color: #5cb85c;
+     border-color: #4cae4c;
+     color: #fff;
+  }
+  button.stop{
+     background-color: #d9534f;
+     border-color: #d43f3a;
+     color: #fff;
+  }
+  button:hover{
+     background-color: #e6e6e6;
+     border-color: #adadad;
+     cursor: pointer;
+  }
+  button.ok:hover{
+      background-color: #449d44;
+      border-color: #398439;
+  }
+  button.stop:hover{
+      background-color: #c9302c;
+      border-color: #ac2925;
+
+  }
+  </style>
   <body style="width: 200px;">
 
-    <div id="start" style="display: none">
+    <div id="start" style="">
         <div><span data-i18n="startRecordingQuestion">Start recording this meeting?</span> (beta)</div>
         <p style="text-align: right">
-            <button id="start-yes" data-i18n="Yes">Yes</button>
             <button id="cancel1" data-i18n="Cancel">Cancel</button>
+            &nbsp;&nbsp;
+            <button id="start-yes" class="ok" data-i18n="Record">Record</button>
         </p>
     </div>
 
@@ -18,9 +55,24 @@
         <p><span data-i18n="Recording___">Recording...</span> <span id="duration"></span></p>
         <div data-i18n="stopRecordingQuestion">Stop recording?</div>
         <p style="text-align: right">
-            <button id="stop-yes" data-i18n="Stop">Stop</button>
             <button id="cancel2" data-i18n="Continue">Continue</button>
+            &nbsp;&nbsp;
+            <button id="stop-yes" class="stop" data-i18n="Stop">Stop</button>
         </p>
     </div>
+
+    <div id="pleasewait" style="display: none">
+        <p><span data-i18n="PleaseWait___">Please wait...</span> <img src="images/loading.gif"></p>
+    </div>
+
+    <div id="pleaseselect" style="display: none">
+        <p><span data-i18n="PleaseSelect___">Please select...</span></p>
+        <p style="text-align: right">
+            <button id="cancel3" data-i18n="Cancel">Cancel</button>
+            &nbsp;&nbsp;
+            <button id="start-recording" class="ok" data-i18n="Continue">Continue</button>
+        </p>
+    </div>
+
   </body>
 </html>
